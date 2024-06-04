@@ -17,7 +17,7 @@ export default function Index() {
       return false; // 前景での許可が得られなかった場合は false を返す
     }
 
-    // バックグラウンドでの位置情報アクセスï許可をリクエスト
+    // バックグラウンドでの位置情報アクセス許可をリクエスト
     const { status: backgroundStatus } =
       await Location.requestBackgroundPermissionsAsync();
     if (backgroundStatus !== 'granted') {
