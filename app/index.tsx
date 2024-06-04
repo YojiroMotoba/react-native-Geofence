@@ -1,19 +1,3 @@
-// import { Text, View } from 'react-native';
-
-// export default function Index() {
-//   return (
-//     <View
-//       style={{
-//         flex: 1,
-//         justifyContent: "center",
-//         alignItems: "center",
-//       }}
-//     >
-//       <Text>Edit app/index.tsx to edit this screen.</Text>
-//     </View>
-//   );
-// }
-
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import * as Location from 'expo-location';
@@ -24,10 +8,30 @@ const GEOFENCE_TASK_NAME = 'GEOFENCE_TASK_NAME';
 export default function Index() {
   const [status, setStatus] = useState('ジオフェンスの設定待ち...');
 
+  async function requestLocationPermissions() {
+    // 前景での位置情報アクセス許可をリクエスト
+    const { status: foregroundStatus } =
+      await Location.requestForegroundPermissionsAsync();
+    if (foregroundStatus !== 'granted') {
+      console.log('Foreground location permission not granted');
+      return false; // 前景での許可が得られなかった場合は false を返す
+    }
+
+    // バックグラウンドでの位置情報アクセスï許可をリクエスト
+    const { status: backgroundStatus } =
+      await Location.requestBackgroundPermissionsAsync();
+    if (backgroundStatus !== 'granted') {
+      console.log('Background location permission not granted');
+      return false; // バックグラウンドでの許可が得られなかった場合も false を返す
+    }
+
+    return true; // 両方の許可が得られた場合は true を返す
+  }
+
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
+      const hasPermissions = await requestLocationPermissions();
+      if (!hasPermissions) {
         setStatus('位置情報の許可が得られませんでした。');
         return;
       }
