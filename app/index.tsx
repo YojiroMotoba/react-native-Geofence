@@ -1,12 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  Platform,
+  DeviceEventEmitter,
+} from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
+import * as Notifications from 'expo-notifications';
 
 const GEOFENCE_TASK_NAME = 'GEOFENCE_TASK_NAME';
 
 export default function Index() {
   const [status, setStatus] = useState('ジオフェンスの設定待ち...');
+  const [geoStatus, setGeoStatus] = useState(
+    'フェンスの外なのか中なのか分からないぜ。。！'
+  );
+
+  async function setupNotifications() {
+    // 通知のパーミッションをリクエスト
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') {
+      console.log('Notification permission not granted');
+      return false;
+    }
+
+    // Androidの場合は通知チャンネルを設定
+    if (Platform.OS === 'android') {
+      Notifications.setNotificationChannelAsync('geofence-channel', {
+        name: 'Geofence Channel',
+        importance: Notifications.AndroidImportance.HIGH,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+      });
+    }
+    return true;
+  }
 
   async function requestLocationPermissions() {
     // 前景での位置情報アクセス許可をリクエスト
@@ -25,7 +55,11 @@ export default function Index() {
       return false; // バックグラウンドでの許可が得られなかった場合も false を返す
     }
 
-    return true; // 両方の許可が得られた場合は true を返す
+    const setupResult = await setupNotifications();
+    if (!setupResult) {
+      return false;
+    }
+    return true;
   }
 
   useEffect(() => {
@@ -37,6 +71,15 @@ export default function Index() {
       }
 
       await setupGeofencing();
+
+      const subscription = DeviceEventEmitter.addListener(
+        'geofenceChange',
+        (data) => {
+          setGeoStatus(`${data.region.identifier}の${data.status}`);
+        }
+      );
+
+      return () => subscription.remove();
     })();
   }, []);
 
@@ -44,10 +87,10 @@ export default function Index() {
     // ジオフェンスの地点を設定
     const geofenceRegion = [
       {
-        identifier: 'TokyoTower',
-        latitude: 35.658581,
-        longitude: 139.745433,
-        radius: 100, // メートル単位
+        identifier: '東京タワー',
+        latitude: 35.65220044459963,
+        longitude: 139.79810190250248,
+        radius: 50,
       },
     ];
 
@@ -59,6 +102,7 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>{status}</Text>
+      <Text style={styles.text}>{geoStatus}</Text>
     </View>
   );
 }
@@ -72,11 +116,32 @@ TaskManager.defineTask(
     }
     if (eventType === Location.GeofencingEventType.Enter) {
       console.log(`ジオフェンス内に入りました: ${region.identifier}`);
+      sendNotification(`ジオフェンス内に入りました: ${region.identifier}`);
+      DeviceEventEmitter.emit('geofenceChange', {
+        status: 'フェンスの中にいます',
+        region,
+      });
     } else if (eventType === Location.GeofencingEventType.Exit) {
       console.log(`ジオフェンス外に出ました: ${region.identifier}`);
+      sendNotification(`ジオフェンス外に出ました: ${region.identifier}`);
+      DeviceEventEmitter.emit('geofenceChange', {
+        status: 'フェンスの外にいます',
+        region,
+      });
     }
   }
 );
+
+async function sendNotification(message: string) {
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Geofence Alert',
+      body: message,
+      data: { data: 'goes here' },
+    },
+    trigger: null, // すぐに通知
+  });
+}
 
 const styles = StyleSheet.create({
   container: {

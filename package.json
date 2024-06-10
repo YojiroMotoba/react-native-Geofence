@@ -35,7 +35,8 @@
     "react-native-screens": "3.31.1",
     "react-native-web": "~0.19.10",
     "expo-location": "~17.0.1",
-    "expo-task-manager": "~11.8.2"
+    "expo-task-manager": "~11.8.2",
+    "expo-notifications": "~0.28.6"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
