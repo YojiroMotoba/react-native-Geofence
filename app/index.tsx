@@ -10,12 +10,37 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 
-const GEOFENCE_TASK_NAME = 'GEOFENCE_TASK_NAME';
+const GEOFENCE_TASK_NAME = 'EXAMPLE_APP_GEOFENCE_TASL';
+
+TaskManager.defineTask(
+  GEOFENCE_TASK_NAME,
+  ({ data: { eventType, region }, error }) => {
+    if (error) {
+      console.error(error);
+      return;
+    }
+    if (eventType === Location.GeofencingEventType.Enter) {
+      console.log(`ジオフェンス内に入りました: ${region.identifier}`);
+      sendNotification(`ジオフェンス内に入りました: ${region.identifier}`);
+      DeviceEventEmitter.emit('geofenceChange', {
+        status: 'フェンスの中にいます',
+        region,
+      });
+    } else if (eventType === Location.GeofencingEventType.Exit) {
+      console.log(`ジオフェンス外に出ました: ${region.identifier}`);
+      sendNotification(`ジオフェンス外に出ました: ${region.identifier}`);
+      DeviceEventEmitter.emit('geofenceChange', {
+        status: 'フェンスの外にいます',
+        region,
+      });
+    }
+  }
+);
 
 export default function Index() {
   const [status, setStatus] = useState('ジオフェンスの設定待ち...');
   const [geoStatus, setGeoStatus] = useState(
-    'フェンスの外なのか中なのか分からないぜ。。！'
+    'フェンスの外なのか中なのか分からない。。！'
   );
 
   async function setupNotifications() {
@@ -87,15 +112,20 @@ export default function Index() {
     // ジオフェンスの地点を設定
     const geofenceRegion = [
       {
-        identifier: '東京タワー',
-        latitude: 35.65220044459963,
-        longitude: 139.79810190250248,
-        radius: 50,
+        identifier: 'ドゥトゥール',
+        latitude: 35.6551551,
+        longitude: 139.7776962,
+        radius: 60,
       },
     ];
 
     // ジオフェンスを開始
-    await Location.startGeofencingAsync(GEOFENCE_TASK_NAME, geofenceRegion);
+    try {
+      console.log('Location.startGeofencingAsync');
+      await Location.startGeofencingAsync(GEOFENCE_TASK_NAME, geofenceRegion);
+    } catch (e) {
+      console.error(JSON.stringify(e));
+    }
     setStatus('ジオフェンスを監視中...');
   };
 
@@ -106,31 +136,6 @@ export default function Index() {
     </View>
   );
 }
-
-TaskManager.defineTask(
-  GEOFENCE_TASK_NAME,
-  ({ data: { eventType, region }, error }) => {
-    if (error) {
-      console.error(error);
-      return;
-    }
-    if (eventType === Location.GeofencingEventType.Enter) {
-      console.log(`ジオフェンス内に入りました: ${region.identifier}`);
-      sendNotification(`ジオフェンス内に入りました: ${region.identifier}`);
-      DeviceEventEmitter.emit('geofenceChange', {
-        status: 'フェンスの中にいます',
-        region,
-      });
-    } else if (eventType === Location.GeofencingEventType.Exit) {
-      console.log(`ジオフェンス外に出ました: ${region.identifier}`);
-      sendNotification(`ジオフェンス外に出ました: ${region.identifier}`);
-      DeviceEventEmitter.emit('geofenceChange', {
-        status: 'フェンスの外にいます',
-        region,
-      });
-    }
-  }
-);
 
 async function sendNotification(message: string) {
   await Notifications.scheduleNotificationAsync({
