@@ -112,10 +112,10 @@ export default function Index() {
     // ジオフェンスの地点を設定
     const geofenceRegion = [
       {
-        identifier: 'ドゥトゥール',
-        latitude: 35.6551551,
-        longitude: 139.7776962,
-        radius: 60,
+        identifier: 'リバスタ',
+        latitude: 35.6521175,
+        longitude: 139.7954886,
+        radius: 20,
       },
     ];
 
