@@ -10,7 +10,7 @@ import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import * as Notifications from 'expo-notifications';
 
-const GEOFENCE_TASK_NAME = 'EXAMPLE_APP_GEOFENCE_TASL';
+const GEOFENCE_TASK_NAME = 'EXAMPLE_APP_GEOFENCE_TASK';
 
 TaskManager.defineTask(
   GEOFENCE_TASK_NAME,
@@ -64,7 +64,7 @@ export default function Index() {
   }
 
   async function requestLocationPermissions() {
-    // 前景での位置情報アクセス許可をリクエスト
+    // フォアグラウンドでの位置情報アクセス許可をリクエスト
     const { status: foregroundStatus } =
       await Location.requestForegroundPermissionsAsync();
     if (foregroundStatus !== 'granted') {
@@ -113,9 +113,9 @@ export default function Index() {
     const geofenceRegion = [
       {
         identifier: 'リバスタ',
-        latitude: 35.6521175,
-        longitude: 139.7954886,
-        radius: 20,
+        latitude: 35.652147041268194,
+        longitude: 139.79803325129706,
+        radius: 50,
       },
     ];
 
