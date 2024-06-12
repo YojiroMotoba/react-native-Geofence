@@ -69,7 +69,7 @@ export default function Index() {
       await Location.requestForegroundPermissionsAsync();
     if (foregroundStatus !== 'granted') {
       console.log('Foreground location permission not granted');
-      return false; // 前景での許可が得られなかった場合は false を返す
+      return false;
     }
 
     // バックグラウンドでの位置情報アクセス許可をリクエスト
@@ -77,7 +77,7 @@ export default function Index() {
       await Location.requestBackgroundPermissionsAsync();
     if (backgroundStatus !== 'granted') {
       console.log('Background location permission not granted');
-      return false; // バックグラウンドでの許可が得られなかった場合も false を返す
+      return false;
     }
 
     const setupResult = await setupNotifications();
